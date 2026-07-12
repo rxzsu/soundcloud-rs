@@ -199,6 +199,26 @@ impl<'a> TrackRequestBuilder<'a> {
         self
     }
 
+    /// Sets a duration range filter (in milliseconds).
+    pub fn duration(
+        &'a mut self,
+        from: Option<usize>,
+        to: Option<usize>,
+    ) -> &'a mut TrackRequestBuilder<'a> {
+        self.duration = from.zip(to).or(from.map(|f| (f, 0))).or(to.map(|t| (0, t)));
+        self
+    }
+
+    /// Sets a BPM range filter.
+    pub fn bpm(
+        &'a mut self,
+        from: Option<usize>,
+        to: Option<usize>,
+    ) -> &'a mut TrackRequestBuilder<'a> {
+        self.bpm = from.zip(to).or(from.map(|f| (f, 0))).or(to.map(|t| (0, t)));
+        self
+    }
+
     /// Sets the access filter (playable, preview, blocked).
     pub fn access(&'a mut self, access: Option<Vec<String>>) -> &'a mut TrackRequestBuilder<'a> {
         self.access = access;
@@ -261,12 +281,14 @@ impl<'a> TrackRequestBuilder<'a> {
             result.push(("urns", urns.join(",")));
         }
 
-        if let Some(ref _duration) = self.duration {
-            unimplemented!();
+        if let Some((from, to)) = self.duration {
+            result.push(("duration[from]", from.to_string()));
+            result.push(("duration[to]", to.to_string()));
         }
 
-        if let Some(ref _bpm) = self.bpm {
-            unimplemented!();
+        if let Some((from, to)) = self.bpm {
+            result.push(("bpm[from]", from.to_string()));
+            result.push(("bpm[to]", to.to_string()));
         }
 
         if let Some(ref genres) = self.genres {
