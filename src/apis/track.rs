@@ -27,7 +27,7 @@ impl FromStr for Filter {
 }
 
 impl fmt::Display for Filter {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_str())
     }
 }
@@ -50,10 +50,14 @@ pub struct TrackRequestBuilder<'a> {
     filter: Option<Filter>,
     license: Option<String>,
     ids: Option<Vec<usize>>,
+    urns: Option<Vec<String>>,
     duration: Option<(usize, usize)>,
     bpm: Option<(usize, usize)>,
     genres: Option<String>,
     types: Option<String>,
+    created_at_from: Option<String>,
+    created_at_to: Option<String>,
+    access: Option<Vec<String>>,
 }
 
 #[derive(Debug)]
@@ -64,7 +68,7 @@ pub struct SingleTrackRequestBuilder<'a> {
 
 impl<'a> SingleTrackRequestBuilder<'a> {
     /// Constructs a new track request.
-    pub fn new(client: &'a Client, id: usize) -> SingleTrackRequestBuilder {
+    pub fn new(client: &'a Client, id: usize) -> SingleTrackRequestBuilder<'a> {
         SingleTrackRequestBuilder { client, id }
     }
 
@@ -107,7 +111,7 @@ impl<'a> SingleTrackRequestBuilder<'a> {
 
 impl<'a> TrackRequestBuilder<'a> {
     /// Creates a new track request builder, with no set parameters.
-    pub fn new(client: &'a Client) -> TrackRequestBuilder {
+    pub fn new(client: &'a Client) -> TrackRequestBuilder<'a> {
         TrackRequestBuilder {
             client,
             query: None,
@@ -115,15 +119,19 @@ impl<'a> TrackRequestBuilder<'a> {
             filter: None,
             license: None,
             ids: None,
+            urns: None,
             duration: None,
             bpm: None,
             genres: None,
             types: None,
+            created_at_from: None,
+            created_at_to: None,
+            access: None,
         }
     }
 
     /// Sets the search query filter, which will only return tracks with a matching query.
-    pub fn query<S>(&'a mut self, query: Option<S>) -> &mut TrackRequestBuilder
+    pub fn query<S>(&'a mut self, query: Option<S>) -> &'a mut TrackRequestBuilder<'a>
     where
         S: AsRef<str>,
     {
@@ -132,7 +140,7 @@ impl<'a> TrackRequestBuilder<'a> {
     }
 
     /// Sets the tags filter, which will only return tracks with a matching tag.
-    pub fn tags<I, T>(&'a mut self, tags: Option<I>) -> &mut TrackRequestBuilder
+    pub fn tags<I, T>(&'a mut self, tags: Option<I>) -> &'a mut TrackRequestBuilder<'a>
     where
         I: AsRef<[T]>,
         T: AsRef<str>,
@@ -144,7 +152,7 @@ impl<'a> TrackRequestBuilder<'a> {
         self
     }
 
-    pub fn genres<I, T>(&'a mut self, genres: Option<I>) -> &mut TrackRequestBuilder
+    pub fn genres<I, T>(&'a mut self, genres: Option<I>) -> &'a mut TrackRequestBuilder<'a>
     where
         I: AsRef<[T]>,
         T: AsRef<str>,
@@ -157,27 +165,50 @@ impl<'a> TrackRequestBuilder<'a> {
     }
 
     /// Sets whether to filter private or public tracks.
-    pub fn filter(&'a mut self, filter: Option<Filter>) -> &mut TrackRequestBuilder {
+    pub fn filter(&'a mut self, filter: Option<Filter>) -> &'a mut TrackRequestBuilder<'a> {
         self.filter = filter;
         self
     }
 
     /// Sets the license filter.
-    pub fn license<S: AsRef<str>>(&'a mut self, license: Option<S>) -> &mut TrackRequestBuilder {
+    pub fn license<S: AsRef<str>>(&'a mut self, license: Option<S>) -> &'a mut TrackRequestBuilder<'a> {
         self.license = license.map(|s| s.as_ref().to_owned());
         self
     }
 
     /// Sets a list of track ids to look up.
-    pub fn ids(&'a mut self, ids: Option<Vec<usize>>) -> &mut TrackRequestBuilder {
+    pub fn ids(&'a mut self, ids: Option<Vec<usize>>) -> &'a mut TrackRequestBuilder<'a> {
         self.ids = ids;
         self
     }
 
+    /// Sets a list of track urns to look up.
+    pub fn urns(&'a mut self, urns: Option<Vec<String>>) -> &'a mut TrackRequestBuilder<'a> {
+        self.urns = urns;
+        self
+    }
+
+    /// Sets created_at filter (from/to).
+    pub fn created_at(
+        &'a mut self,
+        from: Option<String>,
+        to: Option<String>,
+    ) -> &'a mut TrackRequestBuilder<'a> {
+        self.created_at_from = from;
+        self.created_at_to = to;
+        self
+    }
+
+    /// Sets the access filter (playable, preview, blocked).
+    pub fn access(&'a mut self, access: Option<Vec<String>>) -> &'a mut TrackRequestBuilder<'a> {
+        self.access = access;
+        self
+    }
+
     /// Returns a builder for a single track.
-    pub fn id(&'a mut self, id: usize) -> SingleTrackRequestBuilder {
+    pub fn id(&'a mut self, id: usize) -> SingleTrackRequestBuilder<'a> {
         SingleTrackRequestBuilder {
-            client: &self.client,
+            client: self.client,
             id,
         }
     }
@@ -226,6 +257,10 @@ impl<'a> TrackRequestBuilder<'a> {
             result.push(("ids", ids_as_strings.join(",")));
         }
 
+        if let Some(ref urns) = self.urns {
+            result.push(("urns", urns.join(",")));
+        }
+
         if let Some(ref _duration) = self.duration {
             unimplemented!();
         }
@@ -240,6 +275,18 @@ impl<'a> TrackRequestBuilder<'a> {
 
         if let Some(ref types) = self.types {
             result.push(("types", types.clone()));
+        }
+
+        if let Some(ref from) = self.created_at_from {
+            result.push(("created_at[from]", from.clone()));
+        }
+
+        if let Some(ref to) = self.created_at_to {
+            result.push(("created_at[to]", to.clone()));
+        }
+
+        if let Some(ref access) = self.access {
+            result.push(("access", access.join(",")));
         }
 
         result

@@ -27,7 +27,7 @@ use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let soundcloud_client_id = env!("SOUNDCLOUD_CLIENT_ID");
+    let soundcloud_client_id = std::env::var("SOUNDCLOUD_CLIENT_ID").expect("SOUNDCLOUD_CLIENT_ID");
     let client = soundcloud::Client::new(&soundcloud_client_id);
     let tracks = client.tracks().query(Some("montebooker")).get().await?;
 
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .title
             .to_string()
             .replace(&['\"', '.', '\'', '\\', '/', '?', '*'][..], "");
-        let path = format!("{}", track_title);
+        let path = track_title.to_string();
         let mut outfile = File::create(&path).await?.compat_write();
 
         if let Ok(num_bytes) = client.download(track, &mut outfile).await {

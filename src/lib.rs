@@ -1,3 +1,6 @@
+#![deny(unsafe_code)]
+#![warn(clippy::all, rust_2018_idioms)]
+
 //! SoundCloud API library
 //!
 //! This soundcloud library provides an interface where you can query soundcloud for information

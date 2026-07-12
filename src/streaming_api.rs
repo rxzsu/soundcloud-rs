@@ -5,12 +5,12 @@ use serde::de::DeserializeOwned;
 
 pub trait StreamingApiExt: StreamingApi {
     /// Return a stream of all [`StreamingApi::Model`].
-    fn iter(&self, options: PageOptions) -> BoxStream<Result<Self::Model>> {
+    fn iter(&self, options: PageOptions) -> BoxStream<'_, Result<Self::Model>> {
         self.fetch(&options, None)
     }
 
     /// Return a stream of [`StreamingApi::Model`] limited to the first num_pages pages
-    fn get(&self, options: PageOptions, num_pages: u64) -> BoxStream<Result<Self::Model>> {
+    fn get(&self, options: PageOptions, num_pages: u64) -> BoxStream<'_, Result<Self::Model>> {
         self.fetch(&options, Some(num_pages))
     }
 }
@@ -22,13 +22,13 @@ pub trait StreamingApi {
 
     fn path(&self) -> String;
 
-    fn get_stream(&self, url: &str, pages: Option<u64>) -> BoxStream<Result<Self::Model>>;
+    fn get_stream(&self, url: &str, pages: Option<u64>) -> BoxStream<'_, Result<Self::Model>>;
 
     fn fetch(
         &self,
         options: &PageOptions,
         num_pages: Option<u64>,
-    ) -> BoxStream<Result<Self::Model>> {
+    ) -> BoxStream<'_, Result<Self::Model>> {
         let url = self.path();
         let url = if let Some(params) = options.serialize() {
             format!("{}?{}", url, params)

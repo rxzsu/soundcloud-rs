@@ -1,13 +1,21 @@
 pub use self::app::*;
+pub use self::chart::*;
 pub use self::comment::*;
+pub use self::insight::*;
 pub use self::playlist::*;
+pub use self::resolved_resource::*;
+pub use self::streams::*;
 pub use self::track::*;
 pub use self::user::*;
 pub use self::web_profile::*;
 
 mod app;
+mod chart;
 mod comment;
+mod insight;
 mod playlist;
+mod resolved_resource;
+mod streams;
 mod track;
 mod user;
 mod web_profile;

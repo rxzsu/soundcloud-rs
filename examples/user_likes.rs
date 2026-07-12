@@ -27,7 +27,7 @@ use soundcloud::StreamingApiExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let soundcloud_client_id = env!("SOUNDCLOUD_CLIENT_ID");
+    let soundcloud_client_id = std::env::var("SOUNDCLOUD_CLIENT_ID").expect("SOUNDCLOUD_CLIENT_ID");
     let client = soundcloud::Client::new(&soundcloud_client_id);
     let likes = client.user(7466893).likes();
     let mut tracks = likes.iter(Default::default());

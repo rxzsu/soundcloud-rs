@@ -1,4 +1,4 @@
-use crate::apis::{Comments, Followers, Followings, Likes, Playlists, Tracks, WebProfiles};
+use crate::apis::{Followers, Followings, Likes, Playlists, Tracks, WebProfiles};
 use crate::error::{Error, Result};
 use crate::models::User;
 use crate::Client;
@@ -25,7 +25,7 @@ impl<'a> UserRequestBuilder<'a> {
     }
 
     /// Sets the search query filter, which will only return tracks with a matching query.
-    pub fn query<S>(&'a mut self, query: Option<S>) -> &mut UserRequestBuilder
+    pub fn query<S>(&'a mut self, query: Option<S>) -> &'a mut UserRequestBuilder<'a>
     where
         S: AsRef<str>,
     {
@@ -34,7 +34,7 @@ impl<'a> UserRequestBuilder<'a> {
     }
 
     /// Returns a builder for a user request
-    pub fn id(&self, id: usize) -> SingleUserRequestBuilder {
+    pub fn id(&self, id: usize) -> SingleUserRequestBuilder<'_> {
         SingleUserRequestBuilder {
             client: self.client,
             id,
@@ -55,7 +55,7 @@ impl<'a> UserRequestBuilder<'a> {
             .unwrap()
             .pop()
             .unwrap();
-        let id = usize::from_str_radix(id, 10).unwrap();
+        let id = id.parse::<usize>().unwrap();
         Ok(SingleUserRequestBuilder {
             client: self.client,
             id,
@@ -165,4 +165,5 @@ impl<'a> SingleUserRequestBuilder<'a> {
 
         Ok(user)
     }
+
 }

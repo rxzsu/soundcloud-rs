@@ -16,7 +16,7 @@ pub struct SinglePlaylistRequestBuilder<'a> {
 
 impl<'a> SinglePlaylistRequestBuilder<'a> {
     /// Constructs a new track request.
-    pub fn new(client: &'a Client, id: usize) -> SinglePlaylistRequestBuilder {
+    pub fn new(client: &'a Client, id: usize) -> SinglePlaylistRequestBuilder<'a> {
         SinglePlaylistRequestBuilder { client, id }
     }
 
@@ -43,7 +43,7 @@ impl<'a> PlaylistRequestBuilder<'a> {
     }
 
     /// Sets the search query filter, which will only return playlists with a matching query.
-    pub fn query<S>(&'a mut self, query: S) -> &mut Self
+    pub fn query<S>(&'a mut self, query: S) -> &'a mut Self
     where
         S: AsRef<str>,
     {
@@ -52,9 +52,9 @@ impl<'a> PlaylistRequestBuilder<'a> {
     }
 
     /// Returns a builder for a single playlist.
-    pub fn id(&'a mut self, id: usize) -> SinglePlaylistRequestBuilder {
+    pub fn id(&'a mut self, id: usize) -> SinglePlaylistRequestBuilder<'a> {
         SinglePlaylistRequestBuilder {
-            client: &self.client,
+            client: self.client,
             id,
         }
     }

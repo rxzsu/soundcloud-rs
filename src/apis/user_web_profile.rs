@@ -25,7 +25,7 @@ impl StreamingApi for WebProfiles {
         format!("/users/{}/web-profiles", self.user_id)
     }
 
-    fn get_stream(&self, url: &str, pages: Option<u64>) -> BoxStream<Result<Self::Model>> {
+    fn get_stream(&self, url: &str, pages: Option<u64>) -> BoxStream<'_, Result<Self::Model>> {
         self.client.get_stream(url, pages)
     }
 }
